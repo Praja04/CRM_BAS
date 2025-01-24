@@ -74,6 +74,9 @@
                 $.ajax({
                     url: "{{ route('logout') }}",
                     method: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
@@ -90,7 +93,7 @@
             });
 
             // Initialize DataTable for users table
-           
+
         });
     </script>
 </body>

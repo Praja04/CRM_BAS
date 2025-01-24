@@ -13,7 +13,7 @@ Route::get('/', function () {
     return view('signin/login');
 });
 Route::get('layout', function () {
-    return view('layout');
+    return view('customers.index');
 });
 
 // Route Group untuk autentikasi
