@@ -3,8 +3,39 @@
 @section('content')
 <div class="page-content">
     <div class="container-fluid">
-        <h2>User Management</h2>
 
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card mt-n4 mx-n4">
+                    <div class="bg-soft-warning">
+                        <div class="card-body pb-0 px-4">
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <div class="row align-items-center g-3">
+
+                                        <div class="col-md">
+                                            <div>
+                                                <h4 class="fw-bold">Velzon - Management User</h4>
+                                                <div class="hstack gap-3 flex-wrap">
+                                                    <div><i class="ri-building-line align-bottom me-1"></i></div>
+                                                    <div class="vr"></div>
+                                                    <div>manage your users!</span></div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <!-- end card body -->
+                    </div>
+                </div>
+                <!-- end card -->
+            </div>
+            <!-- end col -->
+        </div>
         <!-- Add User Button -->
         <div class="mb-3">
             <button id="addUserBtn" class="btn btn-primary">
@@ -13,20 +44,29 @@
         </div>
 
         <!-- DataTable -->
-        <div >
-            <table id="usersTable" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Created At</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- DataTables will automatically populate this -->
-                </tbody>
-            </table>
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    User Table
+                </h5>
+            </div>
+            <div class="card-body">
+                <div>
+                    <table id="usersTable" class="table table-bordered dt-responsive nowrap table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Created At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- DataTables will automatically populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- User Modal -->
@@ -68,6 +108,9 @@
         var table = $('#usersTable').DataTable({
             processing: true,
             serverSide: true,
+            responsive: false, // Matikan responsif default agar scrollX bekerja
+            scrollX: true, // Aktifkan scroll horizontal jika tabel terlalu besar
+            autoWidth: false, // Hindari perubahan lebar otomatis
             ajax: "{{ route('users.data') }}",
             columns: [{
                     data: 'id',
@@ -87,8 +130,30 @@
                     orderable: false,
                     searchable: false
                 }
+            ],
+            columnDefs: [{
+                    targets: 0,
+                    width: "5%",
+                    className: "text-center text-nowrap"
+                }, // ID kecil & di tengah
+                {
+                    targets: 1,
+                    width: "25%",
+                    className: "text-nowrap"
+                }, // Username tidak patah
+                {
+                    targets: 2,
+                    width: "20%",
+                    className: "text-nowrap"
+                }, // Tanggal tidak patah
+                {
+                    targets: 3,
+                    width: "15%",
+                    className: "text-center"
+                } // Action di tengah
             ]
         });
+
 
         // Add User Button Click
         $('#addUserBtn').on('click', function() {
@@ -116,8 +181,16 @@
                     password: $('#password').val()
                 },
                 success: function(response) {
-                    alert(response.success);
                     $('#userModal').modal('hide');
+                    Swal.fire({
+                        title: 'Success!',
+                        html: '<div class="mt-3"><lord-icon src="https://cdn.lordicon.com/lupuorrc.json" trigger="loop" colors="primary:#0ab39c,secondary:#405189" style="width:120px;height:120px"></lord-icon><div class="mt-4 pt-2 fs-15"><p class="text-muted mx-4 mb-0">' + response.success + '</p></div></div>',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        backdrop: true,
+                        allowOutsideClick: false
+                    });
+                    // alert(response.success);
                     table.ajax.reload();
                 },
                 error: function(xhr) {
@@ -146,23 +219,45 @@
         // Delete Button Click
         $(document).on('click', '.delete', function() {
             var userId = $(this).data('id');
-            if (confirm('Are you sure you want to delete this user?')) {
-                $.ajax({
-                    url: "{{ route('users.destroy', ':id') }}".replace(':id', userId),
-                    method: 'DELETE',
-                    data: {
-                        _token: "{{ csrf_token() }}"
-                    },
-                    success: function(response) {
-                        alert(response.success);
-                        table.ajax.reload();
-                    },
-                    error: function(xhr) {
-                        alert('Error: ' + xhr.responseJSON.message);
-                    }
-                });
-            }
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('users.destroy', ':id') }}".replace(':id', userId),
+                        method: 'DELETE',
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: response.success,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+                            table.ajax.reload();
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: xhr.responseJSON.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    });
+                }
+            });
         });
+
     });
 </script>
 

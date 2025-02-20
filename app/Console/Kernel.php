@@ -14,7 +14,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         // Tambahkan command yang dibuat di sini, jika ada
-        Commands\SendStatusEmail::class,
+        // Commands\SendStatusEmail::class,
+        Commands\SendCustomerEmails::class,
     ];
 
     /**
@@ -23,11 +24,19 @@ class Kernel extends ConsoleKernel
      * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @return void
      */
+    //     protected function schedule(Schedule $schedule)
+    //     {
+    //         $schedule->command('send:status-email')->hourly();
+    //   // Mengirim email setiap jam
+    //     }
+
+
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('send:status-email')->hourly();
-  // Mengirim email setiap jam
+        $schedule->command('send:customer-emails')->everyMinute();
     }
+
+
 
     /**
      * Register the commands for the application.

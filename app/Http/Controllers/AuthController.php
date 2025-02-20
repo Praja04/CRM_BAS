@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -18,14 +21,21 @@ class AuthController extends Controller
                 'message' => 'Anda sudah login.',
             ]);
         }
-
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
         // Proses login
         $credentials = $request->only('username', 'password');
         if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            Session::put('username', $user->username);
+            Cookie::queue('username', $user->username, 60); 
+            Log::info('Username saved in session: ' .Session::get('username'));
             return response()->json([
                 'success' => true,
                 'message' => 'Login berhasil',
-                'redirect' => url('layout'),
+                // 'redirect' => url('dashboard'),
             ]);
         }
 
@@ -44,7 +54,8 @@ class AuthController extends Controller
 
         // Hapus token CSRF jika menggunakan token untuk API
         $request->session()->invalidate();
-
+        $request->session()->flush();
+        Cookie::forget('username');
         // Menghancurkan semua session yang tersimpan
         $request->session()->regenerateToken();
 
@@ -55,4 +66,5 @@ class AuthController extends Controller
         ]);
     }
 
+    
 }

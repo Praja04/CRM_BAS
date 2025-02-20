@@ -152,7 +152,7 @@
                     success: function(response) {
                         if (response.success) {
                             // alert(response.message);
-                            window.location.href = "{{ url('layout') }}"; // Redirect ke halaman layout
+                            window.location.href = "{{ url('dashboard') }}"; // Redirect ke halaman layout
                         } else {
                             alert(response.message);
                         }

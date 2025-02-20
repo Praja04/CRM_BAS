@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log; 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ExampleMail;
@@ -53,6 +54,8 @@ class UserController extends Controller
         return response()->json($user);
     }
 
+    
+
     // Mengupdate data pengguna
     public function update(Request $request, $id)
     {
@@ -98,4 +101,15 @@ class UserController extends Controller
         return response()->json(['message' => 'Email sent successfully!']);
     }
 
+    public function getTotalUsers()
+    {
+        // Mengambil jumlah total user
+        $totalUsers = User::count();
+
+        // Mengembalikan response dalam bentuk JSON
+        return response()->json([
+            'success' => true,
+            'total_users' => $totalUsers,
+        ]);
+    }
 }

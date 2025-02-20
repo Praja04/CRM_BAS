@@ -8,11 +8,19 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use App\Mail\LoyalCustomerEmail;
 use App\Mail\NewCustomerEmail;
-use Illuminate\Support\Facades\Mail; 
+use Illuminate\Support\Facades\Mail;
+use App\Services\TelegramService;
 
 
 class CustomerController extends Controller
 {
+
+    protected $telegramService;
+
+    public function __construct(TelegramService $telegramService)
+    {
+        $this->telegramService = $telegramService;
+    }
     public function index()
     {
         return view('customers.index');
@@ -46,6 +54,18 @@ class CustomerController extends Controller
         // Kirim email
         Mail::to($customer->email)->queue(new LoyalCustomerEmail($customer));
 
+        $message = "🎉 <b>Status Customer Diperbarui</b>\n"
+            . "🆔 ID: {$customer->user_id}\n"
+            . "👤 Nama: {$customer->name}\n"
+            . "📧 Email: {$customer->email}\n"
+            . "📌 Status: LOYAL CUSTOMER";
+
+        $telegramService = new TelegramService();
+        $response = $telegramService->sendMessage($message);
+
+        if (!$response) {
+            return response()->json(['message' => 'Failed to send message to Telegram'], 500);
+        }
         return response()->json(['message' => 'Status updated and email sent']);
     }
 
@@ -83,7 +103,7 @@ class CustomerController extends Controller
     //     return response()->json(['message' => 'Customer added successfully and email sent']);
     // }
 
- 
+
 
     public function store(Request $request)
     {
@@ -110,7 +130,7 @@ class CustomerController extends Controller
         $fromAddress = env('MAIL_FROM_ADDRESS');
         $fromName = env('MAIL_FROM_NAME');
 
-       
+
 
         if (empty($fromAddress) || empty($fromName)) {
             return response()->json(['error' => 'MAIL_FROM_ADDRESS or MAIL_FROM_NAME is not configured in .env'], 500);
@@ -118,6 +138,14 @@ class CustomerController extends Controller
 
         // Kirim email menggunakan queue dengan driver MailerSend
         Mail::to($customer->email)->queue(new NewCustomerEmail($customer));
+
+        // Kirim notifikasi ke Telegram
+        $message = "🎉 <b>Customer Baru Ditambahkan</b>\n"
+            . "🆔 ID: {$customer->user_id}\n"
+            . "👤 Nama: {$customer->name}\n"
+            . "📧 Email: {$customer->email}\n"
+            . "📌 Status: NEW CUSTOMER";
+        $this->telegramService->sendMessage($message);
 
         // Kembalikan respons sukses
         return response()->json(['message' => 'Customer added successfully and email sent']);
@@ -139,8 +167,8 @@ class CustomerController extends Controller
             return response()->json(['message' => 'Customer not found'], 404);
         }
 
-        $customer->name = $request->input('name');
-        $customer->email = $request->input('email');
+        $customer->name = $request->input('name_edit');
+        $customer->email = $request->input('email_edit');
         $customer->save();
 
         return response()->json(['message' => 'Customer updated successfully']);
@@ -157,5 +185,16 @@ class CustomerController extends Controller
 
         return response()->json(['message' => 'Customer deleted successfully']);
     }
-}
 
+    public function getTotalCustomers()
+    {
+        // Mengambil jumlah total user
+        $totalUsers = Customer::count();
+
+        // Mengembalikan response dalam bentuk JSON
+        return response()->json([
+            'success' => true,
+            'total_customers' => $totalUsers,
+        ]);
+    }
+}

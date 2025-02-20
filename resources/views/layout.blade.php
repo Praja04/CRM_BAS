@@ -1,27 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable">
 
 <head>
-    <meta charset="UTF-8">
+
+    <meta charset="utf-8" />
     <title>Customer Relationship Management</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <meta content="Themesbrand" name="author" />
     <!-- App favicon -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="shortcut icon" href="{{ asset('material/assets/images/favicon.ico') }}">
+
+    <!-- Sweet Alert css-->
+    <link href="{{ asset('material/assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
 
     <!-- Layout config Js -->
     <script src="{{ asset('material/assets/js/layout.js') }}"></script>
-
-    <!-- jQuery should be included before DataTables -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- DataTables script -->
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-    <link rel="shortcut icon" href="{{ asset('material/assets/images/favicon.ico') }}" />
+    <!-- Bootstrap Css -->
     <link href="{{ asset('material/assets/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
     <link href="{{ asset('material/assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
@@ -30,14 +26,27 @@
     <!-- custom Css-->
     <link href="{{ asset('material/assets/css/custom.min.css') }}" rel="stylesheet" type="text/css" />
 
+    <!-- jQuery should be included before DataTables -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
 <body>
+
+    <!-- Begin page -->
     <div id="layout-wrapper">
-        <!-- Topbar -->
         @include('component.topbar')
 
-        <!-- sidebar -->
+        <!-- /.modal -->
+        <!-- ========== App Menu ========== -->
+
         @include('component.sidebar')
-        <!-- end sidebar -->
+        <!-- Left Sidebar End -->
+
+
+        <!-- ============================================================== -->
+        <!-- Start right Content here -->
+        <!-- ============================================================== -->
         <div class="main-content">
             <!-- content -->
             @yield('content')
@@ -47,9 +56,19 @@
             @include('component.footer')
             <!-- end footer -->
         </div>
-    </div>
+        <!-- end main content-->
 
-    <!-- JavaScript libraries -->
+    </div>
+    <!-- END layout-wrapper -->
+
+
+
+
+
+
+
+
+    <!-- JAVASCRIPT -->
     <script src="{{ asset('material/assets/libs/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('material/assets/libs/simplebar/simplebar.min.js') }}"></script>
     <script src="{{ asset('material/assets/libs/node-waves/waves.min.js') }}"></script>
@@ -57,42 +76,79 @@
     <script src="{{ asset('material/assets/js/pages/plugins/lord-icon-2.1.0.js') }}"></script>
     <script src="{{ asset('material/assets/js/plugins.js') }}"></script>
 
-    <!-- apexcharts -->
-    <script src="{{ asset('material/assets/libs/apexcharts/apexcharts.min.js') }}"></script>
+    <!-- Sweet Alerts js -->
+    <script src="{{ asset('material/assets/libs/sweetalert2/sweetalert2.min.js') }}"></script>
 
-    <!-- Dashboard init -->
-    <script src="{{ asset('material/assets/js/pages/dashboard-crm.init.js') }}"></script>
+    <!-- Sweet alert init js-->
+    <script src="{{ asset('material/assets/js/pages/sweetalerts.init.js') }}"></script>
 
+    <script src="{{ asset('material/assets/js/highcharts.js') }}"></script>
     <!-- App js -->
     <script src="{{ asset('material/assets/js/app.js') }}"></script>
-
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <!-- Script for handling logout and DataTable -->
     <script>
         $(document).ready(function() {
             // Logout button handler
             $('#logoutButton').click(function() {
-                $.ajax({
-                    url: "{{ route('logout') }}",
-                    method: "POST",
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            alert(response.message);
-                            window.location.href = "{{ url('/') }}"; // Redirect ke halaman utama atau login
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Terjadi kesalahan saat logout');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You will be logged out from your session!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, logout!',
+                    cancelButtonText: 'Cancel',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Tampilkan SweetAlert loading
+                        Swal.fire({
+                            title: 'Logging out...',
+                            text: 'Please wait while we process your request.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading(); // Menampilkan animasi loading
+                            }
+                        });
+
+                        $.ajax({
+                            url: "{{ route('logout') }}",
+                            method: "POST",
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            data: {
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                // Tutup loading dan tampilkan pesan sukses
+                                Swal.fire({
+                                    title: 'Logged Out!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    window.location.href = "{{ url('/') }}"; // Redirect ke halaman utama atau login
+                                });
+                            },
+                            error: function(xhr) {
+                                // Tutup loading dan tampilkan pesan error
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'There was an issue logging out.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        });
                     }
                 });
             });
-
-            // Initialize DataTable for users table
 
         });
     </script>
